@@ -6,6 +6,7 @@
 #define MYPROJECT_POSITION_H
 
 #include <gcem.hpp>
+#include <compare>
 
 struct Position
 {
@@ -27,10 +28,12 @@ struct Position
   [[nodiscard]] constexpr Position position_at(double distance, double radian) const noexcept
   {
     return {
-      static_cast<int>(x - gcem::cos(radian) * distance),
-      static_cast<int>(y - gcem::sin(radian) * distance),
+      static_cast<int>(gcem::round(x - gcem::cos(radian) * distance)),
+      static_cast<int>(gcem::round(y - gcem::sin(radian) * distance)),
     };
   }
+
+  [[nodiscard]] constexpr auto operator<=>(const Position &other) const noexcept = default;
 };
 
 #endif// MYPROJECT_POSITION_H
