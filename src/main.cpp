@@ -7,137 +7,59 @@
 
 #include <algorithm>
 #include <cmath>
+#include <memory>
 #include <string>
 #include <vector>
-
-//#include "tilting_model.h"
 
 #include "backend/tilting_model.h"
 
 
-// enum class MenuEntry { Level = 0, Random = 1, Quit = 2 };
+constexpr int CONTROL_AREA_WIDTH = 100;
+constexpr int CONTROL_AREA_HEIGHT = 100;
+constexpr Position CONTROL_AREA_CENTER = { CONTROL_AREA_WIDTH / 2, CONTROL_AREA_HEIGHT / 2 };
+constexpr double CONTROL_CIRCLE_FACTOR = 0.7;
 
-/*
-struct Position
-{
-  int x{};
-  int y{};
-};
- */
-
-struct Vec2
-{
-  int x{};
-  int y{};
-
-  [[nodiscard]] Vec2 normalize() const { return *this; }
-};
-
-Position operator+(const Position &pos, const Vec2 &vec) { return { pos.x + vec.x, pos.y + vec.y }; }
-
-void show_menu()
+std::shared_ptr<ftxui::ComponentBase> show_control(const std::shared_ptr<TiltingModel> &tilting_model)
 {
   using namespace ftxui;
 
-  // std::array<std::string, 3> menu_entries{ "Level", "Random", "Quit" };
-  MenuEntryOption entry_option{ .style_focused = [](Element elem) { return elem; } };
+  constexpr static int max_radius = static_cast<int>(
+    static_cast<double>(std::min(CONTROL_AREA_WIDTH, CONTROL_AREA_HEIGHT)) * 0.5 * CONTROL_CIRCLE_FACTOR);
+  constexpr static int indicator_radius = 5;
 
-  std::vector<std::string> menu_entries{ "Level", "Random", "Quit" };
-
-  auto screen = ScreenInteractive::TerminalOutput();
-  MenuOption option;
-  option.style_focused = [](Element elem) -> Element { return elem; };
-  option.on_enter = screen.ExitLoopClosure();
-  int menu_selected = 0;
-  auto menu = Menu(&menu_entries, &menu_selected, &option);
-
-  screen.Loop(menu);
-  fmt::print("Selected: {}\n", menu_entries[static_cast<std::size_t>(menu_selected)]);
-}
-
-void show_example()
-{
-  using namespace ftxui;
-  Element document = hbox({
-    text("left") | border,
-    text("middle") | border | flex,
-    text("right") | border,
-  });
-  /*
-  Element document = hbox({
-    text("left"),
-    text("middle") | flex,
-    text("right"),
-  });
-   */
-
-  auto screen = Screen::Create(Dimension::Full(), Dimension::Fit(document));
-  Render(screen, document);
-  screen.Print();
-}
-
-template<typename T> inline T limit(T in, T limit_val) { return in > limit_val ? limit_val : in; }
-
-template<typename T> inline T distance(T lhs, T rhs) { return static_cast<T>(std::sqrt(lhs * lhs + rhs * rhs)); }
-
-void show_canvas()
-{
-  using namespace ftxui;
-
-  constexpr static int width = 100;
-  constexpr static int height = 100;
-  constexpr static int max_radius = std::min(width, height);
-  constexpr static Position center = { width / 2, height / 2 };
-
-  // Position mouse_pos = center;
-
-  TiltingModel tilting_model{ center, center, static_cast<double>(width) / 2.0 }; // NOLINT Magic Number
-
-  auto circle_area = Renderer([&] {
-    auto c = Canvas(width, height);
-    c.DrawPointCircle(center.x, center.y, max_radius);
-    auto mouse_pos = tilting_model.limited_mouse_position();
-    c.DrawPointCircleFilled(mouse_pos.x, mouse_pos.y, 5);// NOLINT Magic Number
+  auto circle_area = Renderer([tilting_model] {
+    auto c = Canvas(CONTROL_AREA_WIDTH, CONTROL_AREA_HEIGHT);
+    auto mouse_pos = tilting_model->limited_mouse_position();
+    c.DrawPointCircle(CONTROL_AREA_CENTER.x, CONTROL_AREA_CENTER.y, max_radius);
+    c.DrawBlockCircleFilled(mouse_pos.x, mouse_pos.y, indicator_radius);
+    c.DrawText(0, 0, fmt::format("x: {}", mouse_pos.x));
+    c.DrawText(0, 4, fmt::format("y: {}", mouse_pos.y));// NOLINT Magic Number
 
     return canvas(std::move(c));
   });
 
-  // auto max_distance_to_center = distance(max_radius, max_radius);
-
-
-  auto circle_with_mouse = CatchEvent(circle_area, [&](Event e) {
-    // fmt::print(stderr, "is_mouse: {}\n", e.is_mouse());
+  return CatchEvent(circle_area, [tilting_model](Event e) {
     if (e.is_mouse()) {
-      auto mouse = e.mouse();
-      // fmt::print(stderr, "mouse.button: {}\n", mouse.button);
-      // fmt::print(stderr, "mouse.motion: {}\n", mouse.motion);
-      // fmt::print(stderr, "mouse.position: {} {}\n", mouse.x, mouse.y);
-      if (mouse.button == Mouse::Button::Left && mouse.motion == Mouse::Motion::Pressed) {
-        tilting_model.mouse_position({ (mouse.x - 1) * 2, (mouse.y - 1) * 4 });
-
+      if (auto mouse = e.mouse(); mouse.button == Mouse::Button::Left && mouse.motion == Mouse::Motion::Pressed) {
+        tilting_model->mouse_position({ (mouse.x - 1) * 2, (mouse.y - 1) * 4 });
         return false;
       }
     }
 
-    tilting_model.mouse_position({ 50, 50 });// NOLINT Magic Numbers
+    tilting_model->mouse_position(CONTROL_AREA_CENTER);
 
     return false;
   });
-
-  auto renderer = Renderer(circle_with_mouse, [&] { return circle_with_mouse->Render() | border; });
-
-  auto screen = ScreenInteractive::FitComponent();
-  screen.Loop(renderer);
-
-  /*
-auto c = Canvas(100, 100); // NOLINT Magic Number
-c.DrawPointCircleFilled(50, 50, 5); // NOLINT Magic Number
-
-auto document = canvas(&c) | border;
-auto screen = Screen::Create(Dimension::Fit(document));
-Render(screen, document);
-screen.Print();
-   */
 }
 
-int main() { show_canvas(); }
+int main()
+{
+  auto tilting_model = std::make_shared<TiltingModel>(CONTROL_AREA_CENTER,
+    CONTROL_AREA_CENTER,
+    static_cast<double>(CONTROL_AREA_WIDTH) * 0.5 * CONTROL_CIRCLE_FACTOR);// NOLINT Magic Number
+
+  auto control_renderer = show_control(tilting_model);
+
+  auto screen = ftxui::ScreenInteractive::FitComponent();
+  screen.Loop(control_renderer);
+}
