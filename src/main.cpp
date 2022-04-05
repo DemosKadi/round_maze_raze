@@ -17,7 +17,7 @@
 
 constexpr int CONTROL_AREA_WIDTH = 100;
 constexpr int CONTROL_AREA_HEIGHT = 100;
-constexpr Position CONTROL_AREA_CENTER = { CONTROL_AREA_WIDTH / 2, CONTROL_AREA_HEIGHT / 2 };
+constexpr Position<> CONTROL_AREA_CENTER = { CONTROL_AREA_WIDTH / 2, CONTROL_AREA_HEIGHT / 2 };
 constexpr double CONTROL_CIRCLE_FACTOR = 0.7;
 
 std::shared_ptr<ftxui::ComponentBase> show_control(const std::shared_ptr<ControllerModel> &controller_model,

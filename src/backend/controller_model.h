@@ -11,7 +11,7 @@
 class ControllerModel
 {
 public:
-  constexpr ControllerModel(Position center_arg, Position mouse_position_arg, double max_distance_arg)
+  constexpr ControllerModel(Position<> center_arg, Position<> mouse_position_arg, double max_distance_arg)
     : center(center_arg), mouse_position(mouse_position_arg), max_distance(max_distance_arg)
   {}
 
@@ -23,13 +23,13 @@ public:
 
   [[nodiscard]] constexpr double radian() const noexcept { return center.radian(mouse_position); }
 
-  [[nodiscard]] constexpr Position limited_mouse_position() const noexcept
+  [[nodiscard]] constexpr Position<> limited_mouse_position() const noexcept
   {
     return center.position_at(limited_distance(), radian());
   }
 
-  Position center{};
-  Position mouse_position{};
+  Position<> center{};
+  Position<> mouse_position{};
   double max_distance{};
 };
 
