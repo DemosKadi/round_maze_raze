@@ -60,6 +60,21 @@ std::shared_ptr<ftxui::ComponentBase> show_control(const std::shared_ptr<Tilting
   });
 }
 
+std::shared_ptr<ftxui::ComponentBase> add_key_events(const std::shared_ptr<ftxui::ComponentBase>& element, const std::shared_ptr<ConfigModel>& config_model, ftxui::ScreenInteractive &screen) {
+  return ftxui::CatchEvent(element, [config_model, &screen](const ftxui::Event &e) {
+    if (e.is_character()) {
+      if (e.character() == "d") {
+        config_model->debug = !config_model->debug;
+        return true;
+      } else if (e.character() == "q") {
+        screen.ExitLoopClosure()();
+        return true;
+      }
+    }
+    return false;
+  });
+}
+
 int main()
 {
   auto tilting_model = std::make_shared<TiltingModel>(CONTROL_AREA_CENTER,
@@ -72,18 +87,7 @@ int main()
 
   auto screen = ftxui::ScreenInteractive::FitComponent();
 
-  auto all_renderer = ftxui::CatchEvent(control_renderer, [config_model, &screen](const ftxui::Event &e) {
-    if (e.is_character()) {
-      if (e.character() == "d") {
-        config_model->debug = !config_model->debug;
-        return true;
-      } else if (e.character() == "q") {
-        screen.ExitLoopClosure()();
-        return true;
-      }
-    }
-    return false;
-  });
+  auto all_renderer = add_key_events(control_renderer, config_model, screen);
 
   screen.Loop(all_renderer);
 }
