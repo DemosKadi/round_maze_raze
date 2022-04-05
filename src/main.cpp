@@ -29,11 +29,14 @@ std::shared_ptr<ftxui::ComponentBase> show_control(const std::shared_ptr<Tilting
 
   auto circle_area = Renderer([tilting_model] {
     auto c = Canvas(CONTROL_AREA_WIDTH, CONTROL_AREA_HEIGHT);
-    auto mouse_pos = tilting_model->limited_mouse_position();
+    auto controller_pos = tilting_model->limited_mouse_position();
     c.DrawPointCircle(CONTROL_AREA_CENTER.x, CONTROL_AREA_CENTER.y, max_radius);
-    c.DrawBlockCircleFilled(mouse_pos.x, mouse_pos.y, indicator_radius);
-    c.DrawText(0, 0, fmt::format("x: {}", mouse_pos.x));
-    c.DrawText(0, 4, fmt::format("y: {}", mouse_pos.y));// NOLINT Magic Number
+    c.DrawBlockCircleFilled(controller_pos.x, controller_pos.y, indicator_radius);
+    c.DrawText(0, 0, fmt::format("ctrl x: {}", controller_pos.x));
+    c.DrawText(0, 4, fmt::format("ctrl y: {}", controller_pos.y));// NOLINT Magic Number
+    auto mouse_pos = tilting_model->mouse_position();
+    c.DrawText(0, 8, fmt::format("mouse x: {}", mouse_pos.x)); // NOLINT Magic Number
+    c.DrawText(0, 12, fmt::format("mouse y: {}", mouse_pos.y));// NOLINT Magic Number
 
     return canvas(std::move(c));
   });
@@ -41,7 +44,7 @@ std::shared_ptr<ftxui::ComponentBase> show_control(const std::shared_ptr<Tilting
   return CatchEvent(circle_area, [tilting_model](Event e) {
     if (e.is_mouse()) {
       if (auto mouse = e.mouse(); mouse.button == Mouse::Button::Left && mouse.motion == Mouse::Motion::Pressed) {
-        tilting_model->mouse_position({ (mouse.x - 1) * 2, (mouse.y - 1) * 4 });
+        tilting_model->mouse_position({ mouse.x * 2, mouse.y * 4 });
         return false;
       }
     }
