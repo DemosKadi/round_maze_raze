@@ -14,7 +14,7 @@ target_link_libraries(
         docopt::docopt
         fmt::fmt
         spdlog::spdlog
-        backend)
+        INTERFACE backend)
 
 target_link_system_libraries(
         intro

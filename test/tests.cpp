@@ -45,58 +45,58 @@ TEST_CASE("Testing Position radian", "[position][radian]")
 
 TEST_CASE("Tilting Model distance", "[tilting_model][distance]")
 {
-  TiltingModel model{ { 0, 0 }, { 0, 0 }, 3 };
+  ControllerModel model{ { 0, 0 }, { 0, 0 }, 3 };
 
   REQUIRE(model.distance() == 0.0);
 
-  model.mouse_position({ 0, 3 });
+  model.mouse_position = { 0, 3 };
   REQUIRE(model.distance() == 3.0);// NOLINT Magic Number
 
-  model.mouse_position({ 0, 4 });
+  model.mouse_position = { 0, 4 };
   REQUIRE(model.distance() == 4.0);// NOLINT Magic Number
 
-  model.mouse_position({ 3, 4 });
+  model.mouse_position = { 3, 4 };
   REQUIRE(model.distance() == 5.0);// NOLINT Magic Number
 }
 
 TEST_CASE("Tilting Model limited_distance", "[tilting_model][limited_distance]")
 {
-  TiltingModel model{ { 0, 0 }, { 0, 0 }, 3 };
+  ControllerModel model{ { 0, 0 }, { 0, 0 }, 3 };
 
   REQUIRE(model.limited_distance() == 0.0);
 
-  model.mouse_position({ 0, 3 });
+  model.mouse_position = { 0, 3 };
   REQUIRE(model.limited_distance() == 3.0);// NOLINT Magic Number
 
-  model.mouse_position({ 0, 4 });
+  model.mouse_position = { 0, 4 };
   REQUIRE(model.limited_distance() == 3.0);// NOLINT Magic Number
 
-  model.mouse_position({ 3, 4 });
+  model.mouse_position = { 3, 4 };
   REQUIRE(model.limited_distance() == 3.0);// NOLINT Magic Number
 }
 
 TEST_CASE("Tilting Model radian", "[tilting_model][radian]")
 {
-  TiltingModel model{ { 0, 0 }, { 0, 0 }, 3 };
+  ControllerModel model{ { 0, 0 }, { 0, 0 }, 3 };
 
   REQUIRE(model.radian() == 0.0);
 
-  model.mouse_position({ 1, 0 });
+  model.mouse_position = { 1, 0 };
   REQUIRE(model.radian() == Approx(3.141592));// NOLINT Magic Number
 
-  model.mouse_position({ 3, 4 });
+  model.mouse_position = { 3, 4 };
   REQUIRE(model.radian() == Approx(-2.214297));// NOLINT Magic Number
 }
 
 TEST_CASE("Tilting Model limited_mouse_position", "[tilting_model][limited_mouse_position]")
 {
-  TiltingModel model{ { 0, 0 }, { 0, 0 }, 3 };
+  ControllerModel model{ { 0, 0 }, { 0, 0 }, 3 };
 
   REQUIRE(model.limited_mouse_position() == Position{ 0, 0 });
 
-  model.mouse_position({ 3, 4 });
+  model.mouse_position = { 3, 4 };
   REQUIRE(model.limited_mouse_position() == Position{ 2, 2 });
 
-  model.mouse_position({ 1, 4 });
+  model.mouse_position = { 1, 4 };
   REQUIRE(model.limited_mouse_position() == Position{ 1, 3 });
 }

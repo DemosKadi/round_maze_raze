@@ -8,10 +8,10 @@
 #include "position.h"
 #include <algorithm>
 
-class TiltingModel
+class ControllerModel
 {
 public:
-  constexpr TiltingModel(Position center_arg, Position mouse_position_arg, double max_distance_arg)
+  constexpr ControllerModel(Position center_arg, Position mouse_position_arg, double max_distance_arg)
     : center(center_arg), mouse_position(mouse_position_arg), max_distance(max_distance_arg)
   {}
 
