@@ -18,7 +18,7 @@
 constexpr int CONTROL_AREA_WIDTH = 100;
 constexpr int CONTROL_AREA_HEIGHT = 100;
 constexpr Position<> CONTROL_AREA_CENTER = { CONTROL_AREA_WIDTH / 2, CONTROL_AREA_HEIGHT / 2 };
-constexpr double CONTROL_CIRCLE_FACTOR = 0.7;
+constexpr float CONTROL_CIRCLE_FACTOR = 0.7F;
 
 std::shared_ptr<ftxui::ComponentBase> show_control(const std::shared_ptr<ControllerModel> &controller_model,
   const std::shared_ptr<ConfigModel> &config_model)
@@ -26,7 +26,7 @@ std::shared_ptr<ftxui::ComponentBase> show_control(const std::shared_ptr<Control
   using namespace ftxui;
 
   constexpr static int max_radius = static_cast<int>(
-    static_cast<double>(std::min(CONTROL_AREA_WIDTH, CONTROL_AREA_HEIGHT)) * 0.5 * CONTROL_CIRCLE_FACTOR);
+    static_cast<float>(std::min(CONTROL_AREA_WIDTH, CONTROL_AREA_HEIGHT)) * 0.5F * CONTROL_CIRCLE_FACTOR);
   constexpr static int indicator_radius = 5;
 
   auto circle_area = Renderer([controller_model, config_model] {
@@ -79,7 +79,7 @@ int main()
 {
   auto controller_model = std::make_shared<ControllerModel>(CONTROL_AREA_CENTER,
     CONTROL_AREA_CENTER,
-    static_cast<double>(CONTROL_AREA_WIDTH) * 0.5 * CONTROL_CIRCLE_FACTOR);// NOLINT Magic Number
+    static_cast<float>(CONTROL_AREA_WIDTH) * 0.5F * CONTROL_CIRCLE_FACTOR);// NOLINT Magic Number
 
   auto config_model = std::make_shared<ConfigModel>();
 

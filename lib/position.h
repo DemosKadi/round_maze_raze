@@ -15,19 +15,19 @@ struct Position
   int x{};
   int y{};
 
-  [[nodiscard]] double distance(const Position &other) const noexcept
+  [[nodiscard]] float distance(const Position &other) const noexcept
   {
     auto a = std::abs(x - other.x);
     auto b = std::abs(y - other.y);
     return std::sqrt(a * a + b * b);
   }
 
-  [[nodiscard]] double radian(const Position &other) const noexcept
+  [[nodiscard]] float radian(const Position &other) const noexcept
   {
     return std::atan2(y - other.y, x - other.x);
   }
 
-  [[nodiscard]] Position position_at(double distance, double radian) const noexcept
+  [[nodiscard]] Position position_at(float distance, float radian) const noexcept
   {
     return {
       static_cast<int>(std::round(x - std::cos(radian) * distance)),

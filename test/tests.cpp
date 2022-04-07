@@ -1,5 +1,5 @@
 #include "../lib/position.h"
-#include "../lib/tilting_model.h"
+#include "../lib/controller_model.h"
 #include <catch2/catch.hpp>
 
 /*
