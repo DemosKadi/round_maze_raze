@@ -1,4 +1,4 @@
-find_package(gcem CONFIG REQUIRED)
+find_package(gcem CONFIG)
 
 set(LIB_NAME backend)
 

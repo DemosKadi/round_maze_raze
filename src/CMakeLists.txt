@@ -1,9 +1,9 @@
 find_package(fmt CONFIG)
 find_package(spdlog CONFIG)
 find_package(docopt CONFIG)
-#find_package(gcem CONFIG)
+# gcem has to be found and linked here, else it does not work
+# find_package(gcem CONFIG)
 
-add_subdirectory(backend)
 # Generic test that uses conan libs
 add_executable(intro main.cpp)
 

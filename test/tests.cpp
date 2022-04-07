@@ -1,5 +1,5 @@
-#include "../src/backend/position.h"
-#include "../src/backend/tilting_model.h"
+#include "../lib/position.h"
+#include "../lib/tilting_model.h"
 #include <catch2/catch.hpp>
 
 /*

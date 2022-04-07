@@ -119,6 +119,9 @@ target_compile_features(project_options INTERFACE cxx_std_${CMAKE_CXX_STANDARD})
 # configure files based on CMake configuration options
 add_subdirectory(configured_files)
 
+# Adding the lib
+add_subdirectory(lib)
+
 # Adding the src:
 add_subdirectory(src)
 
