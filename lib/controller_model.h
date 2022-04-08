@@ -32,10 +32,14 @@ public:
 
   [[nodiscard]] Vec2 limited_direction() const noexcept
   {
-    return Vec2{ static_cast<float>(mouse_position.x - center.x), static_cast<float>(mouse_position.y - center.y) }
-             .normalize()
-           * max_distance;
+    auto vec = Vec2{ static_cast<float>(mouse_position.x - center.x), static_cast<float>(mouse_position.y - center.y) };
+    auto normal = vec.normalize();
+    auto l_distance = limited_distance();
+    auto result = normal * l_distance;
+    return result;
   }
+
+  [[nodiscard]] Position<> limited_block_position() const noexcept { return center.apply_vec2(limited_direction()); }
 
   Position<> center{};
   Position<> mouse_position{};

@@ -20,6 +20,13 @@ constexpr int CONTROL_AREA_HEIGHT = 100;
 constexpr Position<> CONTROL_AREA_CENTER = { CONTROL_AREA_WIDTH / 2, CONTROL_AREA_HEIGHT / 2 };
 constexpr float CONTROL_CIRCLE_FACTOR = 0.7F;
 
+bool is_left_button_pressed(const ftxui::Mouse &mouse)
+{
+  auto left_button = mouse.button == ftxui::Mouse::Button::Left;
+  auto pressed = mouse.motion == ftxui::Mouse::Motion::Pressed;
+  return pressed && left_button;
+}
+
 std::shared_ptr<ftxui::ComponentBase> show_control(const std::shared_ptr<ControllerModel> &controller_model,
   const std::shared_ptr<ConfigModel> &config_model)
 {
@@ -31,13 +38,14 @@ std::shared_ptr<ftxui::ComponentBase> show_control(const std::shared_ptr<Control
 
   auto circle_area = Renderer([controller_model, config_model] {
     auto c = Canvas(CONTROL_AREA_WIDTH, CONTROL_AREA_HEIGHT);
-    auto controller_pos = controller_model->limited_mouse_position();
+    auto pos = controller_model->limited_block_position();
+
     c.DrawPointCircle(CONTROL_AREA_CENTER.x, CONTROL_AREA_CENTER.y, max_radius);
-    c.DrawBlockCircleFilled(controller_pos.x, controller_pos.y, indicator_radius);
+    c.DrawBlockCircleFilled(pos.x, pos.y, indicator_radius);
 
     if (config_model->debug) {
-      c.DrawText(0, 0, fmt::format("ctrl x: {}", controller_pos.x));
-      c.DrawText(0, 4, fmt::format("ctrl y: {}", controller_pos.y));// NOLINT Magic Number
+      c.DrawText(0, 0, fmt::format("ctrl x: {}", pos.x));
+      c.DrawText(0, 4, fmt::format("ctrl y: {}", pos.y));// NOLINT Magic Number
       auto mouse_pos = controller_model->mouse_position;
       c.DrawText(0, 8, fmt::format("mouse x: {}", mouse_pos.x));// NOLINT Magic Number
       c.DrawText(0, 12, fmt::format("mouse y: {}", mouse_pos.y));// NOLINT Magic Number
@@ -47,11 +55,11 @@ std::shared_ptr<ftxui::ComponentBase> show_control(const std::shared_ptr<Control
   });
 
   return CatchEvent(circle_area, [controller_model](Event e) {
-    if (e.is_mouse()) {
-      if (auto mouse = e.mouse(); mouse.button == Mouse::Button::Left && mouse.motion == Mouse::Motion::Pressed) {
-        controller_model->mouse_position = { mouse.x * 2, mouse.y * 4 };
-        return true;
-      }
+    const auto& mouse = e.mouse();
+
+    if (e.is_mouse() && is_left_button_pressed(mouse)) {
+      controller_model->mouse_position = { mouse.x * 2, mouse.y * 4 };
+      return true;
     }
 
     controller_model->mouse_position = CONTROL_AREA_CENTER;
@@ -60,7 +68,10 @@ std::shared_ptr<ftxui::ComponentBase> show_control(const std::shared_ptr<Control
   });
 }
 
-std::shared_ptr<ftxui::ComponentBase> add_key_events(const std::shared_ptr<ftxui::ComponentBase>& element, const std::shared_ptr<ConfigModel>& config_model, ftxui::ScreenInteractive &screen) {
+std::shared_ptr<ftxui::ComponentBase> add_key_events(const std::shared_ptr<ftxui::ComponentBase> &element,
+  const std::shared_ptr<ConfigModel> &config_model,
+  ftxui::ScreenInteractive &screen)
+{
   return ftxui::CatchEvent(element, [config_model, &screen](const ftxui::Event &e) {
     if (e.is_character()) {
       if (e.character() == "d") {

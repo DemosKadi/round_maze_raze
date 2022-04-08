@@ -12,6 +12,7 @@ struct Vec2
 
   [[nodiscard]] Vec2 normalize() const noexcept
   {
+    if (x == 0.0F && y == 0.0F) { return *this; }
     auto m = magnitude();
     return { x / m, y / m };
   }
