@@ -55,7 +55,7 @@ std::shared_ptr<ftxui::ComponentBase> show_control(const std::shared_ptr<Control
   });
 
   return CatchEvent(circle_area, [controller_model](Event e) {
-    const auto& mouse = e.mouse();
+    const auto &mouse = e.mouse();
 
     if (e.is_mouse() && is_left_button_pressed(mouse)) {
       controller_model->mouse_position = { mouse.x * 2, mouse.y * 4 };
