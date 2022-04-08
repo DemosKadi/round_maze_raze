@@ -8,6 +8,8 @@ target_sources(${LIB_NAME} INTERFACE
         position.h
         controller_model.h
         config_model.h
+        ball.h
+        maze_model.h
         )
 
     #target_include_directories(${LIB_NAME} INTERFACE $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>)

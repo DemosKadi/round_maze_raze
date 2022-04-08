@@ -1,4 +1,5 @@
 #include <ftxui/component/component.hpp>
+#include <ftxui/component/component_base.hpp>
 #include <ftxui/component/screen_interactive.hpp>
 #include <ftxui/dom/canvas.hpp>
 #include <ftxui/dom/elements.hpp>
@@ -13,6 +14,7 @@
 
 #include "../lib/config_model.h"
 #include "../lib/controller_model.h"
+#include "../lib/maze_model.h"
 
 
 constexpr int CONTROL_AREA_WIDTH = 100;
@@ -27,7 +29,34 @@ bool is_left_button_pressed(const ftxui::Mouse &mouse)
   return pressed && left_button;
 }
 
-std::shared_ptr<ftxui::ComponentBase> show_control(const std::shared_ptr<ControllerModel> &controller_model,
+// FIXME: use reference instead of shared_ptr
+
+ftxui::Component show_maze(const std::shared_ptr<ControllerModel> &controller_model,
+  const std::shared_ptr<ConfigModel> &config_model,
+  const std::shared_ptr<MazeModel> &maze_model)
+{
+  constexpr static int WIDTH = CONTROL_AREA_WIDTH;
+  constexpr static int HEIGHT = CONTROL_AREA_HEIGHT;
+  constexpr static int BALL_RADIUS = 3;
+  // constexpr static std::size_t TICKS_PER_SECOND = 100;
+
+  auto maze_drawer = [controller_model, config_model, maze_model] {
+    auto acceleration = controller_model->limited_direction();
+
+    maze_model->acceleration = acceleration;
+    maze_model->tick();
+
+    auto c = ftxui::Canvas(WIDTH, HEIGHT);
+    const auto &ball_pos = maze_model->ball.position.rounded();
+    c.DrawPointCircleFilled(ball_pos.x, ball_pos.y, BALL_RADIUS);
+
+    return ftxui::canvas(std::move(c));
+  };
+
+  return ftxui::Renderer(maze_drawer);
+}
+
+ftxui::Component show_control(const std::shared_ptr<ControllerModel> &controller_model,
   const std::shared_ptr<ConfigModel> &config_model)
 {
   using namespace ftxui;
@@ -68,7 +97,7 @@ std::shared_ptr<ftxui::ComponentBase> show_control(const std::shared_ptr<Control
   });
 }
 
-std::shared_ptr<ftxui::ComponentBase> add_key_events(const std::shared_ptr<ftxui::ComponentBase> &element,
+ftxui::Component add_key_events(const std::shared_ptr<ftxui::ComponentBase> &element,
   const std::shared_ptr<ConfigModel> &config_model,
   ftxui::ScreenInteractive &screen)
 {
@@ -93,12 +122,19 @@ int main()
     static_cast<float>(CONTROL_AREA_WIDTH) * 0.5F * CONTROL_CIRCLE_FACTOR);// NOLINT Magic Number
 
   auto config_model = std::make_shared<ConfigModel>();
+  auto maze_model = std::make_shared<MazeModel>();
 
   auto control_renderer = show_control(controller_model, config_model);
+  auto maze_renderer = show_maze(controller_model, config_model, maze_model);
+  // auto layout = ftxui::Container::Horizontal(maze_renderer, control_renderer);
+  auto maze_control_renderer = ftxui::Renderer([&] {
+    return ftxui::border(ftxui::hbox({ maze_renderer->Render(), ftxui::separator(), control_renderer->Render() }));
+  });
+
 
   auto screen = ftxui::ScreenInteractive::FitComponent();
 
-  auto all_renderer = add_key_events(control_renderer, config_model, screen);
+  auto all_renderer = add_key_events(maze_control_renderer, config_model, screen);
 
   screen.Loop(all_renderer);
 }

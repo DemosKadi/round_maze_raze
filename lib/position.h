@@ -12,8 +12,8 @@
 
 template<typename T = int> struct Position
 {
-  int x{};
-  int y{};
+  T x{};
+  T y{};
 
   [[nodiscard]] float distance(const Position &other) const noexcept
   {
@@ -27,7 +27,7 @@ template<typename T = int> struct Position
     return static_cast<float>(std::atan2(y - other.y, x - other.x));
   }
 
-  [[nodiscard]] Position position_at(float distance, float radian) const noexcept
+  [[nodiscard]] Position<int> position_at(float distance, float radian) const noexcept
   {
     return {
       static_cast<int>(std::round(static_cast<float>(x) - std::cos(radian) * distance)),
@@ -35,10 +35,18 @@ template<typename T = int> struct Position
     };
   }
 
-  [[nodiscard]] Position<T> apply_vec2(const Vec2 &vec2) const noexcept
+  [[nodiscard]] Position apply_vec2(const Vec2 &vec2) const noexcept
   {
     return { static_cast<T>(std::round(static_cast<float>(x) + vec2.x)),
       static_cast<T>(std::round(static_cast<float>(y) + vec2.y)) };
+  }
+
+  [[nodiscard]] Position<int> rounded() const noexcept
+  {
+    return {
+      static_cast<int>(std::round(x)),
+      static_cast<int>(std::round(y))
+    };
   }
 
   [[nodiscard]] constexpr auto operator<=>(const Position &other) const noexcept = default;
