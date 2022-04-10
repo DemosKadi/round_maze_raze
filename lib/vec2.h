@@ -19,7 +19,7 @@ struct Vec2
 
   [[nodiscard]] Vec2 operator*(float value) const noexcept { return { x * value, y * value }; }
 
-  [[nodiscard]] Vec2 operator+(const Vec2 &other) const noexcept { return { x + other.x, y * other.y }; }
+  [[nodiscard]] Vec2 operator+(const Vec2 &other) const noexcept { return { x + other.x, y + other.y }; }
 
   Vec2 &operator+=(const Vec2 &other) noexcept
   {

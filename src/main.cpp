@@ -26,6 +26,8 @@ constexpr int CONTROL_AREA_WIDTH = 100;
 constexpr int CONTROL_AREA_HEIGHT = 100;
 constexpr Position<> CONTROL_AREA_CENTER = { CONTROL_AREA_WIDTH / 2, CONTROL_AREA_HEIGHT / 2 };
 constexpr float CONTROL_CIRCLE_FACTOR = 0.7F;
+constexpr DrawArea maze_area{ 0, 0 };
+constexpr DrawArea control_area{ CONTROL_AREA_WIDTH, 0 };
 
 bool is_left_button_pressed(const ftxui::Mouse &mouse)
 {
@@ -61,14 +63,68 @@ void draw_control_area(ftxui::Canvas &canvas,
   canvas.DrawPointCircle(x_off(CONTROL_AREA_CENTER.x), y_off(CONTROL_AREA_CENTER.y), max_radius);
   canvas.DrawBlockCircleFilled(x_off(pos.x), y_off(pos.y), indicator_radius);
 
-  if (config_model.debug) {
-    canvas.DrawText(0, 0, fmt::format("ctrl x: {}", pos.x));
-    canvas.DrawText(0, 4, fmt::format("ctrl y: {}", pos.y));// NOLINT Magic Number
-    auto mouse_pos = controller_model.mouse_position;
-    canvas.DrawText(0, 8, fmt::format("mouse x: {}", mouse_pos.x));// NOLINT Magic Number
-    canvas.DrawText(0, 12, fmt::format("mouse y: {}", mouse_pos.y));// NOLINT Magic Number
-    canvas.DrawText(0, 16, config_model.free_text);// NOLINT Magic Number
-  }
+  if (config_model.debug) {}
+}
+
+void draw_debug(ftxui::Canvas &canvas,
+  const ConfigModel &config_model,
+  const ControllerModel &controller_model,
+  const MazeModel &maze_model)
+{
+  if (!config_model.debug) { return; }
+
+  [[maybe_unused]] const auto pos = controller_model.limited_block_position();
+  [[maybe_unused]] const auto mouse_pos = controller_model.mouse_position;
+  std::array debug_lines{
+    //fmt::format("ctrl x: {}", pos.x),
+    //fmt::format("ctrl y: {}", pos.y),
+    //fmt::format("mouse x: {}", mouse_pos.x),
+    //fmt::format("mouse y: {}", mouse_pos.y),
+    //config_model.free_text,
+    fmt::format("ball.v.x: {}", maze_model.ball.velocity.x),
+    fmt::format("ball.v.y: {}", maze_model.ball.velocity.y),
+    fmt::format("maze.a.x: {}", maze_model.acceleration.x),
+    fmt::format("maze.a.y: {}", maze_model.acceleration.y),
+
+  };
+
+  int counter = 0;
+
+  for (const auto &line : debug_lines) { canvas.DrawText(0, (counter++) * 4, line); }
+}
+
+ftxui::Component add_events(ftxui::Component component,
+  ConfigModel &config_model,
+  MazeModel &maze_model,
+  ControllerModel &controller_model,
+  const ftxui::ScreenInteractive::Callback &exit)
+{
+  return ftxui::CatchEvent(std::move(component), [&](ftxui::Event e) {
+    if (e.is_character()) {
+      if (e == ftxui::Event::Character('d')) {
+        config_model.debug = !config_model.debug;
+        return true;
+      } else if (e == ftxui::Event::Character('q')) {
+        exit();
+        return true;
+      }
+    } else if (e.is_mouse()) {
+      const auto &mouse = e.mouse();
+
+      config_model.free_text = fmt::format("is_mouse: {}, x: {}, y: {}", e.is_mouse(), mouse.x, mouse.y);
+
+      if (is_left_button_pressed(mouse)) {
+        controller_model.mouse_position = { mouse.x * 2 - control_area.x, mouse.y * 4 - control_area.y };
+        maze_model.acceleration = controller_model.limited_direction() * 0.01F;// NOLINT
+        maze_model.tick();
+        return true;
+      }
+
+      controller_model.mouse_position = CONTROL_AREA_CENTER;
+    }
+
+    return false;
+  });
 }
 
 int main()
@@ -82,42 +138,17 @@ int main()
   ConfigModel config_model{};
   MazeModel maze_model{};
 
-  constexpr static DrawArea maze_area{ 0, 0 };
-  constexpr static DrawArea control_area{ CONTROL_AREA_WIDTH, 0 };
 
   auto maze_control_renderer = ftxui::Renderer([&] {
     ftxui::Canvas canvas{ CONTROL_AREA_WIDTH * 2, CONTROL_AREA_HEIGHT };
     draw_maze(canvas, maze_area, maze_model);
     draw_control_area(canvas, control_area, controller_model, config_model);
+    if (config_model.debug) { draw_debug(canvas, config_model, controller_model, maze_model); }
 
     return ftxui::canvas(std::move(canvas));
   });
 
   auto screen = ftxui::ScreenInteractive::FitComponent();
-  maze_control_renderer = ftxui::CatchEvent(maze_control_renderer, [&](ftxui::Event e) {
-    if (e.is_character()) {
-      if (e == ftxui::Event::Character('d')) {
-        config_model.debug = !config_model.debug;
-        return true;
-      } else if (e == ftxui::Event::Character('q')) {
-        screen.ExitLoopClosure()();
-        return true;
-      }
-    } else if (e.is_mouse()) {
-      const auto &mouse = e.mouse();
 
-      config_model.free_text = fmt::format("is_mouse: {}, x: {}, y: {}", e.is_mouse(), mouse.x, mouse.y);
-
-      if (is_left_button_pressed(mouse)) {
-        controller_model.mouse_position = { mouse.x * 2 - control_area.x, mouse.y * 4 - control_area.y };
-        return true;
-      }
-
-      controller_model.mouse_position = CONTROL_AREA_CENTER;
-    }
-
-    return false;
-  });
-
-  screen.Loop(maze_control_renderer);
+  screen.Loop(add_events(maze_control_renderer, config_model, maze_model, controller_model, screen.ExitLoopClosure()));
 }
