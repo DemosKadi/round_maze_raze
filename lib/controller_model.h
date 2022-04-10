@@ -12,9 +12,11 @@
 class ControllerModel
 {
 public:
+        /*
   ControllerModel(Position<> center_arg, Position<> mouse_position_arg, float max_distance_arg)
     : center(center_arg), mouse_position(mouse_position_arg), max_distance(max_distance_arg)
   {}
+        */
 
   [[nodiscard]] float distance() const noexcept { return center.distance(mouse_position); }
   [[nodiscard]] float limited_distance() const noexcept

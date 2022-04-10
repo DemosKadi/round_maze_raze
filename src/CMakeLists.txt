@@ -1,6 +1,8 @@
 find_package(fmt CONFIG)
 find_package(spdlog CONFIG)
 find_package(docopt CONFIG)
+
+#find_library(atomic-lib atomic)
 # gcem has to be found and linked here, else it does not work
 # find_package(gcem CONFIG)
 
@@ -14,6 +16,7 @@ target_link_libraries(
         docopt::docopt
         fmt::fmt
         spdlog::spdlog
+        atomic
         INTERFACE backend)
 
 target_link_system_libraries(
